@@ -14,7 +14,7 @@ db.sequelize = sequelize;
 
 // Define models
 db.User = require('./user')(sequelize, DataTypes);
-db.Book = require('./book')(sequelize, DataTypes);
+db.Book = require('./books')(sequelize, DataTypes);
 db.Author = require('./author')(sequelize, DataTypes);
 db.Review = require('./review')(sequelize, DataTypes);
 db.Comment = require('./comment')(sequelize, DataTypes);
@@ -29,8 +29,8 @@ db.BookList = require('./bookList')(sequelize, DataTypes);
 db.GenreBook = require('./genreBook')(sequelize, DataTypes);
 
 // Define associations
-db.Author.hasMany(db.Book, { foreignKey: 'author_id' });
-db.Book.belongsTo(db.Author, { foreignKey: 'author_id' });
+db.Author.belongsToMany(db.Book, { through: 'knjige_has_autori_knjiga', foreignKey: 'author_id', timestamps: false });
+db.Book.belongsToMany(db.Author, { through: 'knjige_has_autori_knjiga', foreignKey: 'book_id', timestamps: false });
 
 db.User.hasMany(db.Review, { foreignKey: 'user_id' });
 db.Review.belongsTo(db.User, { foreignKey: 'user_id' });

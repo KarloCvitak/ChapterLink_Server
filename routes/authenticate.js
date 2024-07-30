@@ -1,8 +1,9 @@
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const config = require('../config');
+const { User, Role, UserRole } = require('../models'); // Import the necessary models
 
-module.exports = (express, pool) => {
+module.exports = (express) => {
     const authRouter = express.Router();
 
     // Registration endpoint
@@ -11,41 +12,24 @@ module.exports = (express, pool) => {
         const user = {
             username: req.body.username,
             password_hash: passwordHash,
-            email: req.body.email,
-            role: 'user'
+            email: req.body.email
         };
 
         try {
-            const conn = await pool.getConnection();
-            const [result] = await conn.query('INSERT INTO users SET ?', user);
-            conn.release();
-            res.json({ status: 'OK', insertId: result.insertId });
+            const newUser = await User.create(user);
+
+            // Assign default role (assuming role_id 1 is the default user role)
+            const defaultRole = await Role.findOne({ where: { role_name: 'User' } });
+            if (defaultRole) {
+                await UserRole.create({ user_id: newUser.user_id, role_id: defaultRole.role_id });
+            }
+
+            res.json({ status: 'OK', insertId: newUser.user_id });
         } catch (e) {
             console.error('Error during registration:', e);
             res.status(500).json({ status: 'Error', message: e.message });
         }
     });
-
-    authRouter.post('/check-username-email', async (req, res) => {
-        const { username, email } = req.body;
-
-        try {
-            const [usernameResult] = await pool.query('SELECT COUNT(*) as count FROM users WHERE username = ?', [username]);
-            const [emailResult] = await pool.query('SELECT COUNT(*) as count FROM users WHERE email = ?', [email]);
-
-            const usernameInUse = usernameResult[0].count > 0;
-            const emailInUse = emailResult[0].count > 0;
-
-            res.json({
-                usernameInUse: usernameInUse,
-                emailInUse: emailInUse
-            });
-        } catch (error) {
-            console.error('Database query error:', error);
-            res.status(500).json({ error: 'Internal server error' });
-        }
-    });
-
 
     // Login endpoint
     authRouter.post('/login', async (req, res) => {
@@ -53,25 +37,47 @@ module.exports = (express, pool) => {
         const passwordHash = crypto.createHash('sha256').update(password).digest('hex');
 
         try {
-            const conn = await pool.getConnection();
-            const [rows] = await conn.query('SELECT * FROM users WHERE email = ?', [email]);
-            conn.release();
+            const user = await User.findOne({
+                where: { email },
+                include: [{
+                    model: Role,
+                    through: { attributes: [] }
+                }]
+            });
 
-            console.log('User fetched from database:', rows);
-            console.log('Stored hash:', rows.length ? rows[0].password_hash : 'No user found');
-            console.log('Provided hash:', passwordHash);
+            if (user && user.password_hash === passwordHash) {
+                const roles = user.Roles.map(role => role.role_name); // Extract role names
+                const token = jwt.sign({
+                    id: user.user_id,
+                    email: user.email,
+                    roles
+                }, config.secret, { expiresIn: '24h' });
 
-            if (rows.length && rows[0].password_hash === passwordHash) {
-                const token = jwt.sign({ id: rows[0].id, email: rows[0].email, role: rows[0].role }, config.secret, { expiresIn: '24h' });
                 res.json({ status: 'OK', token });
-                console.log('Received token:', token);
-
             } else {
                 res.status(401).json({ status: 'Error', message: 'Invalid credentials' });
             }
         } catch (e) {
             console.error('Error during login:', e);
             res.status(500).json({ status: 'Error', message: e.message });
+        }
+    });
+
+    // Endpoint to check if username or email is already in use
+    authRouter.post('/check-username-email', async (req, res) => {
+        const { username, email } = req.body;
+
+        try {
+            const usernameInUse = await User.count({ where: { username } });
+            const emailInUse = await User.count({ where: { email } });
+
+            res.json({
+                usernameInUse: usernameInUse > 0,
+                emailInUse: emailInUse > 0
+            });
+        } catch (error) {
+            console.error('Database query error:', error);
+            res.status(500).json({ error: 'Internal server error' });
         }
     });
 

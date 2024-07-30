@@ -38,6 +38,9 @@ app.use(helmet({
     },
 }));
 
+const { sequelize } = require('./models/index'); // Import sequelize
+
+
 app.use(morgan('dev'));
 
 app.use((req, res, next) => {
@@ -52,20 +55,52 @@ app.use((req, res, next) => {
     }
 });
 
+///// FIXED ROM ////
+
 // Routes
 try {
-    const authRouter = require('./routes/authenticate')(express, pool);
+    const authRouter = require('./routes/authenticate')(express);
     app.use('/api/authenticate', authRouter);
 } catch (error) {
     console.error('Error loading authenticate route:', error);
 }
 
+
+
 try {
-    const usersRouter = require('./routes/users')(express, pool);
+    const usersRouter = require('./routes/users')(express);
     app.use('/api/users', usersRouter);
 } catch (error) {
     console.error('Error loading users route:', error);
+
+
+
+
 }
+
+
+
+try {
+    const searchRouter = require('./routes/search')(express);
+    app.use('/api/search', searchRouter);
+} catch (error) {
+    console.error('Error loading followings route:', error);
+}
+
+
+
+try {
+    const statusRouter = require('./routes/status')(express);
+    app.use('/api/status', statusRouter);
+} catch (error) {
+    console.error('Error loading status route:', error);
+}
+
+
+///// NOT FIXED ROM ////
+
+
+
 
 try {
     const commentsRouter = require('./routes/comments')(express, pool);
@@ -123,26 +158,14 @@ try {
     console.error('Error loading followings route:', error);
 }
 
-app.get('/api/search/users', verifyToken, async (req, res) => {
-    const query = `%${req.query.q}%`;
-    try {
-        const [rows] = await pool.query('SELECT * FROM USERS WHERE username LIKE ? OR email LIKE ?', [query, query]);
-        res.json({ data: rows });
-    } catch (error) {
-        res.status(500).json({ status: 'Error', message: error.message });
-    }
-});
 
 
-app.get('/api/search/lists', verifyToken, async (req, res) => {
-    const query = `%${req.query.q}%`;
-    try {
-        const [rows] = await pool.query('SELECT * FROM LISTS WHERE title LIKE ? OR description LIKE ?', [query, query]);
-        res.json({ data: rows });
-    } catch (error) {
-        res.status(500).json({ status: 'Error', message: error.message });
-    }
-});
+
+
+
+
+
+
 /*
 app.use(express.static(path.join(__dirname, 'public/app')));
 

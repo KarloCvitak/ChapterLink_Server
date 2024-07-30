@@ -5,13 +5,13 @@ module.exports = (sequelize, DataTypes) => {
             autoIncrement: true,
             primaryKey: true
         },
-        name: {
+        status_name: {
             type: DataTypes.STRING(50),
             allowNull: false
         }
     }, {
         tableName: 'statusi',
-        timestamps: falses
+        timestamps: false
     });
     return Status;
 };
