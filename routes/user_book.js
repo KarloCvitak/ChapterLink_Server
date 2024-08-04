@@ -47,6 +47,7 @@ module.exports = () => {
 
             await book.setAuthors(authorInstances);
 
+
             // Find existing user book entry
             let userBook = await UserBook.findOne({ where: { user_id, book_id: book.book_id } });
 

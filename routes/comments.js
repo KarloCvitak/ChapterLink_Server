@@ -1,5 +1,6 @@
+// routes/comments.js
 const express = require('express');
-const { Comment, User, Review } = require('../models');
+const { Comment, User } = require('../models');
 const verifyToken = require('../middlewares/verifyToken');
 
 module.exports = () => {
@@ -10,10 +11,7 @@ module.exports = () => {
         .get(async (req, res) => {
             try {
                 const comments = await Comment.findAll({
-                    include: [
-                        { model: User, attributes: ['username'] },
-                        { model: Review }
-                    ]
+                    include: [{ model: User, attributes: ['username'] }]
                 });
                 res.json({ status: 'OK', comments });
             } catch (e) {
@@ -36,10 +34,7 @@ module.exports = () => {
         .get(async (req, res) => {
             try {
                 const comment = await Comment.findByPk(req.params.id, {
-                    include: [
-                        { model: User, attributes: ['username'] },
-                        { model: Review }
-                    ]
+                    include: [{ model: User, attributes: ['username'] }]
                 });
                 if (comment) {
                     res.json({ status: 'OK', comment });
@@ -50,8 +45,10 @@ module.exports = () => {
                 console.error(e);
                 res.status(500).json({ status: 'Error', message: e.message });
             }
-        })
-        .put(async (req, res) => {
+        });
+
+        commentsRouter.route('/:id')
+            .put(async (req, res) => {
             const { comment_text } = req.body;
             try {
                 const [updatedRows] = await Comment.update({ comment_text }, {
@@ -83,14 +80,12 @@ module.exports = () => {
             }
         });
 
-    commentsRouter.route('/reviews/:reviewId')
+    commentsRouter.route('/critics/:critic_id')
         .get(async (req, res) => {
             try {
                 const comments = await Comment.findAll({
-                    where: { critic_id: req.params.reviewId },
-                    include: [
-                        { model: User, attributes: ['username'] }
-                    ]
+                    where: { critic_id: req.params.critic_id },
+                    include: [{ model: User, attributes: ['username'] }]
                 });
                 res.json({ status: 'OK', comments });
             } catch (e) {

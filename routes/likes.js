@@ -32,6 +32,47 @@ module.exports = () => {
             }
         });
 
+    likesRouter.route('/critic/:critic_id')
+        .get(async (req, res) => {
+            try {
+                const { critic_id } = req.params;
+                const likes = await Like.findAll({
+                    where: { critic_id },
+                    include: [
+                        { model: User, attributes: ['username'] }
+                    ]
+                });
+                res.json({ status: 'OK', likes });
+            } catch (e) {
+                console.error(e);
+                res.status(500).json({ status: 'Error', message: e.message });
+            }
+        });
+
+
+
+    likesRouter.route('/:critic_id/:user_id')
+        .delete(async (req, res) => {
+            try {
+                const { critic_id, user_id } = req.params;
+                const deletedRows = await Like.destroy({
+                    where: {
+                        critic_id: critic_id,
+                        user_id: user_id
+                    }
+                });
+                if (deletedRows > 0) {
+                    res.json({ status: 'OK', message: 'Like deleted successfully' });
+                } else {
+                    res.status(404).json({ status: 'Error', message: 'Like not found' });
+                }
+            } catch (e) {
+                console.error(e);
+                res.status(500).json({ status: 'Error', message: e.message });
+            }
+        });
+
+
     likesRouter.route('/:id')
         .get(async (req, res) => {
             try {

@@ -97,6 +97,27 @@ module.exports = () => {
         }
     });
 
+    reviewRouter.get('/:critic_id', async (req, res) => {
+        const { critic_id } = req.params;
+        console.log("critic review id " + critic_id);
+        try {
+            const review = await Review.findByPk(critic_id, {
+                include: [{ model: User, attributes: ['username'] },
+                    {model: Book, attributes:['google_books_id']}
+                ]
+            });
+            if (review) {
+                res.json({ status: 'OK', review });
+            } else {
+                res.status(404).json({ status: 'Error', message: 'Review not found' });
+            }
+        } catch (e) {
+            console.error(e);
+            res.status(500).json({ status: 'Error', message: e.message });
+        }
+    });
+
+
     // Update a specific review
     reviewRouter.put('/:critic_id', async (req, res) => {
         const { critic_id } = req.params;
@@ -117,7 +138,7 @@ module.exports = () => {
             console.error(e);
             res.status(500).json({ status: 'Error', message: e.message });
         }
-    });
+    })
 
     // Delete a specific review
     reviewRouter.delete('/:critic_id', async (req, res) => {
@@ -143,7 +164,7 @@ module.exports = () => {
         try {
             const reviews = await Review.findAll({
                 where: { user_id: userId },
-                include: [{ model: Book }]
+                include: [{ model: Book  }]
             });
             res.json({ status: 'OK', reviews });
         } catch (e) {

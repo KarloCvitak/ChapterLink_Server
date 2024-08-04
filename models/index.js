@@ -25,6 +25,7 @@ db.Role = require('./role')(sequelize, DataTypes);
 db.UserRole = require('./userRole')(sequelize, DataTypes);
 db.Genre = require('./genre')(sequelize, DataTypes);
 db.UserBook = require('./userBook')(sequelize, DataTypes);
+db.Liste = require('./lists')(sequelize, DataTypes);
 db.BookList = require('./bookList')(sequelize, DataTypes);
 db.GenreBook = require('./genreBook')(sequelize, DataTypes);
 
@@ -38,8 +39,8 @@ db.Review.belongsTo(db.User, { foreignKey: 'user_id' });
 db.Book.hasMany(db.Review, { foreignKey: 'book_id' });
 db.Review.belongsTo(db.Book, { foreignKey: 'book_id' });
 
-db.Review.hasMany(db.Comment, { foreignKey: 'review_id' });
-db.Comment.belongsTo(db.Review, { foreignKey: 'review_id' });
+db.Review.hasMany(db.Comment, { foreignKey: 'critic_id' });
+db.Comment.belongsTo(db.Review, { foreignKey: 'critic_id' });
 
 db.User.hasMany(db.Comment, { foreignKey: 'user_id' });
 db.Comment.belongsTo(db.User, { foreignKey: 'user_id' });
@@ -54,8 +55,11 @@ db.UserBook.belongsTo(db.User, { foreignKey: 'user_id' });
 db.UserBook.belongsTo(db.Book, { foreignKey: 'book_id' });
 db.UserBook.belongsTo(db.Status, { foreignKey: 'status_id' });
 
-db.User.hasMany(db.BookList, { foreignKey: 'user_id' });
-db.BookList.belongsTo(db.User, { foreignKey: 'user_id' });
+db.User.hasMany(db.Liste, { foreignKey: 'user_id' });
+db.Liste.belongsTo(db.User, { foreignKey: 'user_id' });
+
+db.Liste.hasMany(db.BookList, { foreignKey: 'list_id' });
+db.BookList.belongsTo(db.Liste, { foreignKey: 'list_id' });
 
 db.Book.hasMany(db.BookList, { foreignKey: 'book_id' });
 db.BookList.belongsTo(db.Book, { foreignKey: 'book_id' });
@@ -69,8 +73,8 @@ db.Follow.belongsTo(db.User, { foreignKey: 'follower_id', as: 'Follower' });
 db.Follow.belongsTo(db.User, { foreignKey: 'followed_id', as: 'Followed' });
 
 db.User.hasMany(db.Like, { foreignKey: 'user_id' });
-db.Review.hasMany(db.Like, { foreignKey: 'review_id' });
+db.Review.hasMany(db.Like, { foreignKey: 'critic_id' });
 db.Like.belongsTo(db.User, { foreignKey: 'user_id' });
-db.Like.belongsTo(db.Review, { foreignKey: 'review_id' });
+db.Like.belongsTo(db.Review, { foreignKey: 'critic_id' });
 
 module.exports = db;
