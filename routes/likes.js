@@ -49,6 +49,25 @@ module.exports = () => {
             }
         });
 
+    likesRouter.route('/critic/:critic_id')
+        .delete(async (req, res) => {
+            try {
+                const { critic_id } = req.params;
+                const deletedRows = await Like.destroy({
+                    where: {
+                        critic_id: critic_id,
+                    }
+                });
+                if (deletedRows > 0) {
+                    res.json({ status: 'OK', message: 'Like deleted successfully' });
+                } else {
+                    res.status(404).json({ status: 'Error', message: 'Like not found' });
+                }
+            } catch (e) {
+                console.error(e);
+                res.status(500).json({ status: 'Error', message: e.message });
+            }
+        });
 
 
     likesRouter.route('/:critic_id/:user_id')
@@ -107,6 +126,39 @@ module.exports = () => {
                 res.status(500).json({ status: 'Error', message: e.message });
             }
         });
+
+    likesRouter.route('/top-critics')
+        .get(async (req, res) => {
+            try {
+                const likes = await Like.findAll({
+                    attributes: [
+                        'critic_id',
+                        [Like.fn('COUNT', Like.col('critic_id')), 'like_count']
+                    ],
+                    group: ['critic_id'],
+                    order: [[Like.literal('like_count'), 'DESC']],
+                    limit: 5,
+                    include: [
+                        {
+                            model: Review,
+                            include: [
+                                { model: Book, attributes: ['title', 'google_books_id', 'cover_image'] }
+                            ],
+                            attributes: ['review_text']
+                        },
+                        { model: User, attributes: ['username'] }
+                    ]
+                });
+
+                res.json({ status: 'OK', likes });
+            } catch (e) {
+                console.error(e);
+                res.status(500).json({ status: 'Error', message: e.message });
+            }
+
+        });
+
+
 
     return likesRouter;
 };

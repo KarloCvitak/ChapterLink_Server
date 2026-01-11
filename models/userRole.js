@@ -1,16 +1,28 @@
 module.exports = (sequelize, DataTypes) => {
-    const UserRole = sequelize.define('UserRole', {
+    const KorisnickeRole = sequelize.define('KorisnickeRole', {
+        user_role_id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true,
+        },
         user_id: {
             type: DataTypes.INTEGER,
-            primaryKey: true
+            allowNull: false,
         },
         role_id: {
             type: DataTypes.INTEGER,
-            primaryKey: true
-        }
+            allowNull: false,
+        },
     }, {
         tableName: 'korisnicke_role',
-        timestamps: false
+        timestamps: false,
     });
-    return UserRole;
+
+    KorisnickeRole.associate = (models) => {
+        KorisnickeRole.belongsTo(models.User, { foreignKey: 'user_id' });
+        KorisnickeRole.belongsTo(models.Role, { foreignKey: 'role_id' });
+    };
+
+
+    return KorisnickeRole;
 };

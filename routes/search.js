@@ -1,6 +1,5 @@
-const express = require('express');
 const verifyToken = require('../middlewares/verifyToken');
-const { User, BookList } = require('../models'); // Import models
+const { User, Liste } = require('../models'); // Import models
 const { Op } = require('sequelize'); // Import Sequelize operators
 
 module.exports = (express) => {
@@ -31,7 +30,7 @@ module.exports = (express) => {
     searchRouter.get('/lists', async (req, res) => {
         const query = `%${req.query.q}%`;
         try {
-            const lists = await BookList.findAll({
+            const lists = await Liste.findAll({
                 where: {
                     [Op.or]: [
                         { title: { [Op.like]: query } },

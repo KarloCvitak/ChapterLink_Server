@@ -6,7 +6,6 @@ const { User, Role, UserRole } = require('../models'); // Import the necessary m
 module.exports = (express) => {
     const authRouter = express.Router();
 
-    // Registration endpoint
     authRouter.post('/register', async (req, res) => {
         const passwordHash = crypto.createHash('sha256').update(req.body.password).digest('hex');
         const user = {
@@ -46,7 +45,7 @@ module.exports = (express) => {
             });
 
             if (user && user.password_hash === passwordHash) {
-                const roles = user.Roles.map(role => role.role_name); // Extract role names
+                const roles = user.Roles.map(role => role.role_name);
                 const token = jwt.sign({
                     id: user.user_id,
                     email: user.email,

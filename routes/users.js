@@ -1,11 +1,17 @@
-const crypto = require('crypto');
+//middleware za verifikaciju
 const verifyToken = require('../middlewares/verifyToken');
-const { User, Follow } = require('../models'); // Import the User and Follow models
+//modeli korišteni za rute
+const { User, Follow } = require('../models');
 
+//export modula
 module.exports = (express) => {
+
+    //instanciranje express.Router() za users.js
     const usersRouter = express.Router();
 
+    //korištenje middleware-a za ovu rutu
     usersRouter.use(verifyToken);
+
 
     usersRouter.route('/')
         .get(async (req, res) => {
@@ -37,16 +43,6 @@ module.exports = (express) => {
                 res.status(500).json({ status: 'Error', message: e.message });
             }
         })
-        .put(async (req, res) => {
-            const user = req.body;
-            try {
-                const updatedUser = await User.update(user, { where: { id: req.params.id } });
-                res.json({ status: 'OK', changedRows: updatedUser[0] });
-            } catch (e) {
-                console.error(e);
-                res.status(500).json({ status: 'Error', message: e.message });
-            }
-        })
         .delete(async (req, res) => {
             try {
                 const deletedUser = await User.destroy({ where: { id: req.params.id } });
@@ -57,5 +53,35 @@ module.exports = (express) => {
             }
         });
 
+    usersRouter.route('/:id')
+        .put(async (req, res) => {
+            const { username } = req.body;
+            console.log({username});
+            const userId = req.params.id;
+
+            if (!username) {
+                return res.status(400).json({ status: 'Error', message: 'Username is required' });
+            }
+
+            try {
+                // Find the user to ensure they exist
+                const user = await User.findByPk(userId);
+                if (!user) {
+                    return res.status(404).json({ status: 'Error', message: 'User not found' });
+                }
+
+                // Update the username
+                const [updatedRows] = await User.update({ username }, { where: { user_id: userId } });
+
+                if (updatedRows > 0) {
+                    res.json({ status: 'OK', message: 'Username updated successfully' });
+                } else {
+                    res.status(400).json({ status: 'Error', message: 'No changes made' });
+                }
+            } catch (e) {
+                console.error(e);
+                res.status(500).json({ status: 'Error', message: e.message });
+            }
+        });
     return usersRouter;
 };

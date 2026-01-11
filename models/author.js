@@ -3,7 +3,7 @@ module.exports = (sequelize, DataTypes) => {
         author_id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
         name: { type: DataTypes.STRING, allowNull: false }
     }, {
-        tableName: 'autori_knjiga', // Explicitly specify the table name
+        tableName: 'autori_knjiga',
         timestamps: false
     });
 
@@ -17,3 +17,4 @@ module.exports = (sequelize, DataTypes) => {
 
     return Author;
 };
+

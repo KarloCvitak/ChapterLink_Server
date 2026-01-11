@@ -102,7 +102,7 @@ module.exports = () => {
         console.log("critic review id " + critic_id);
         try {
             const review = await Review.findByPk(critic_id, {
-                include: [{ model: User, attributes: ['username'] },
+                include: [{ model: User, attributes: ['username', "user_id"] },
                     {model: Book, attributes:['google_books_id']}
                 ]
             });
